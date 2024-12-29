@@ -1,20 +1,63 @@
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, IntegerField, DateField
-from wtforms.validators import DataRequired, Length, Optional, NumberRange
+from wtforms.validators import DataRequired, Length, Optional, NumberRange, ValidationError
 from flask_migrate import Migrate
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import WebApplicationClient
 import hashlib
+import logging
+from logging.handlers import RotatingFileHandler
+import traceback
+from datetime import datetime
+from functools import wraps
+from sqlalchemy import or_
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# ログ設定
+def setup_logger():
+    # ログディレクトリの作成
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+
+    # ログフォーマットの設定
+    formatter = logging.Formatter(
+        '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+    )
+
+    # ファイルハンドラの設定（日付ごとのログファイル）
+    file_handler = RotatingFileHandler(
+        f'logs/app.log',
+        maxBytes=1024 * 1024,  # 1MB
+        backupCount=10
+    )
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.INFO)
+
+    # コンソールハンドラの設定
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    console_handler.setLevel(logging.DEBUG)
+
+    # ルートロガーの設定
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    return logger
+
+# ロガーの初期化
+logger = setup_logger()
 
 # Load environment variables
 load_dotenv()
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # 開発環境でのみ使用
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -22,6 +65,16 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
 app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
+
+# セキュリティ設定
+is_production = os.environ.get('RENDER') == 'true'
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # CSRFトークンの有効期限を1時間に設定
+app.config['WTF_CSRF_SSL_STRICT'] = is_production  # 本番環境でのみHTTPS強制
+app.config['WTF_CSRF_ENABLED'] = True  # CSRFトークンを有効化
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # セッションの有効期限も1時間に設定
+app.config['SESSION_COOKIE_SECURE'] = is_production  # 本番環境でのみHTTPS強制
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # JavaScriptからのセッションクッキーへのアクセスを防止
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # クロスサイトリクエストを制限
 
 # Initialize extensions
 db = SQLAlchemy(app)
@@ -33,6 +86,15 @@ login_manager.login_view = 'index'
 # OAuth2 configuration
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 client = WebApplicationClient(app.config['GOOGLE_CLIENT_ID'])
+
+# レート制限の設定
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+    strategy="fixed-window"
+)
 
 # Models
 class User(UserMixin, db.Model):
@@ -91,9 +153,17 @@ class ProjectForm(FlaskForm):
     deadline = DateField('納期', validators=[DataRequired()])
     expires_at = DateField('募集期限', validators=[DataRequired()])
 
+    def validate_expires_at(self, field):
+        if field.data and self.deadline.data and field.data > self.deadline.data:
+            raise ValidationError('募集期限は納期より前に設定してください')
+
+    def validate_budget_max(self, field):
+        if field.data and self.budget_min.data and field.data < self.budget_min.data:
+            raise ValidationError('最大金額は最小金額以上に設定してください')
+
 class ProposalForm(FlaskForm):
     content = TextAreaField('提案内容', validators=[DataRequired(), Length(max=2000)])
-    url = StringField('ポートフォリオURL', validators=[Optional(), Length(max=200)])
+    url = StringField('提案用URL', validators=[DataRequired(), Length(max=200)])
     expires_at = DateField('提案の有効期限', validators=[DataRequired()])
 
 class ProfileForm(FlaskForm):
@@ -119,14 +189,51 @@ def hash_filter(value):
 def nl2br_filter(s):
     return s.replace('\n', '<br>') if s else ''
 
+# エラーハンドラ
+@app.errorhandler(404)
+def not_found_error(error):
+    logger.error(f'Page not found: {request.url}')
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    logger.error(f'Server Error: {error}\nTraceback: {traceback.format_exc()}')
+    return render_template('errors/500.html'), 500
+
+# レート制限エラーハンドラ
+@app.errorhandler(429)  # Too Many Requests
+def ratelimit_handler(e):
+    logger.warning(f'Rate limit exceeded: {str(e.description)}')
+    return render_template('errors/429.html', retry_after=e.description), 429
+
+# ログ記録用のデコレータ
+def log_action(action_name):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            try:
+                logger.info(f'{action_name} started - User: {current_user.id if not current_user.is_anonymous else "Anonymous"}')
+                result = f(*args, **kwargs)
+                logger.info(f'{action_name} completed successfully')
+                return result
+            except Exception as e:
+                logger.error(f'{action_name} failed - Error: {str(e)}\nTraceback: {traceback.format_exc()}')
+                raise
+        return decorated_function
+    return decorator
+
 # Routes
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/login/<user_type>')
+@log_action('Login attempt')
+@limiter.limit("5 per minute")  # ログイン試行の制限
 def login(user_type):
     if user_type not in ['client', 'engineer']:
+        logger.warning(f'Invalid user type attempted: {user_type}')
         return redirect(url_for('index'))
 
     session['user_type'] = user_type
@@ -140,11 +247,13 @@ def login(user_type):
     return redirect(request_uri)
 
 @app.route('/auth/google/callback')
+@log_action('Google OAuth callback')
 def callback():
     code = request.args.get("code")
     user_type = request.args.get("state")
     
     if not code:
+        logger.warning('No code provided in callback')
         return redirect(url_for('index'))
 
     try:
@@ -168,6 +277,7 @@ def callback():
         userinfo = oauth.get("https://openidconnect.googleapis.com/v1/userinfo").json()
 
         if not userinfo.get("email_verified"):
+            logger.warning(f'Unverified email attempted login: {userinfo.get("email")}')
             return redirect(url_for('index'))
 
         google_id = userinfo["sub"]
@@ -181,6 +291,7 @@ def callback():
             existing_user.picture = picture
             db.session.commit()
             login_user(existing_user)
+            logger.info(f'Existing user logged in: {email} ({user_type})')
             return redirect(url_for('dashboard'))
 
         user = User(
@@ -193,10 +304,11 @@ def callback():
         db.session.add(user)
         db.session.commit()
         login_user(user)
+        logger.info(f'New user registered and logged in: {email} ({user_type})')
         return redirect(url_for('dashboard'))
 
     except Exception as e:
-        print(f"Error during authentication: {str(e)}")
+        logger.error(f'Authentication error: {str(e)}\nTraceback: {traceback.format_exc()}')
         return redirect(url_for('index'))
 
 @app.route('/logout')
@@ -232,8 +344,11 @@ def edit_profile():
 
 @app.route('/projects/new', methods=['GET', 'POST'])
 @login_required
+@log_action('Project creation')
+@limiter.limit("10 per hour")  # プロジェクト作成の制限
 def create_project():
     if current_user.user_type != 'client':
+        logger.warning(f'Non-client user attempted to create project: {current_user.id}')
         return redirect(url_for('dashboard'))
 
     form = ProjectForm()
@@ -250,9 +365,11 @@ def create_project():
         try:
             db.session.add(project)
             db.session.commit()
+            logger.info(f'Project created successfully: {project.id} by user {current_user.id}')
             return redirect(url_for('dashboard'))
-        except:
+        except Exception as e:
             db.session.rollback()
+            logger.error(f'Project creation failed: {str(e)}\nTraceback: {traceback.format_exc()}')
 
     return render_template('project_form.html', form=form)
 
@@ -312,8 +429,11 @@ def project_detail(project_id):
 
 @app.route('/projects/<int:project_id>/apply', methods=['GET', 'POST'])
 @login_required
+@log_action('Project application')
+@limiter.limit("20 per hour")  # 提案作成の制限
 def apply_project(project_id):
     if current_user.user_type != 'engineer':
+        logger.warning(f'Non-engineer user attempted to apply for project: {current_user.id}')
         return redirect(url_for('dashboard'))
 
     project = Project.query.get_or_404(project_id)
@@ -323,6 +443,7 @@ def apply_project(project_id):
     ).first()
     
     if existing_proposal:
+        logger.info(f'Duplicate proposal attempted: User {current_user.id} for Project {project_id}')
         return redirect(url_for('project_detail', project_id=project_id))
 
     form = ProposalForm()
@@ -337,15 +458,71 @@ def apply_project(project_id):
         try:
             db.session.add(proposal)
             db.session.commit()
+            logger.info(f'Proposal submitted successfully: User {current_user.id} for Project {project_id}')
             return redirect(url_for('project_detail', project_id=project_id))
-        except:
+        except Exception as e:
             db.session.rollback()
+            logger.error(f'Proposal submission failed: {str(e)}\nTraceback: {traceback.format_exc()}')
 
     return render_template('proposal_form.html', form=form, project=project)
+
+# APIエンドポイント
+@app.route('/api/projects')
+@login_required
+@limiter.limit("60 per minute")
+def api_projects():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    show_expired = request.args.get('show_expired', 'false') == 'true'
+    
+    today = datetime.now().date()
+    query = Project.query
+    
+    if not show_expired:
+        query = query.filter(or_(
+            Project.expires_at.is_(None),
+            Project.expires_at >= today
+        ))
+    
+    pagination = query.order_by(Project.created_at.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    projects = []
+    for project in pagination.items:
+        projects.append({
+            'id': project.id,
+            'title': project.title,
+            'description': project.description,
+            'budget_min': project.budget_min,
+            'budget_max': project.budget_max,
+            'deadline': project.deadline.strftime('%Y年%m月%d日') if project.deadline else None,
+            'expires_at': project.expires_at.strftime('%Y年%m月%d日') if project.expires_at else None,
+            'client': {
+                'name': project.client.name,
+                'email_hash': hashlib.md5(project.client.email.lower().encode('utf-8')).hexdigest(),
+                'picture': project.client.picture
+            }
+        })
+    
+    return jsonify({
+        'projects': projects,
+        'has_more': page < pagination.pages if pagination.pages else False
+    })
 
 # Initialize database
 with app.app_context():
     db.create_all()
 
+# OAuth2の設定
+if not is_production:
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'  # 開発環境でのみ使用
+
 if __name__ == '__main__':
-    app.run(host='localhost', port=3000, ssl_context=('cert.pem', 'key.pem'), debug=True)
+    if os.environ.get('RENDER'):
+        # Production environment (Render)
+        port = int(os.environ.get('PORT', 10000))
+        app.run(host='0.0.0.0', port=port)
+    else:
+        # Local development environment
+        app.run(host='localhost', port=3000, ssl_context=('cert.pem', 'key.pem'), debug=True)

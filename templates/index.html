@@ -134,7 +134,6 @@
                 <ul>
                     <li><a href="#features">特徴</a></li>
                     <li><a href="#how-it-works">仕組み</a></li>
-                    <li><a href="#get-started">始める</a></li>
                 </ul>
             </nav>
         </header>
@@ -143,13 +142,16 @@
             <section class="hero">
                 <h1>未来のシステム開発を共創するプラットフォーム</h1>
                 <p>AIを活用して、システム開発の依頼者と開発者を結ぶ新しい形のマッチングサイト</p>
-                <a href="#get-started" class="btn">今すぐ始める &#8594;</a>
+                <div class="cta-buttons" style="margin-top: 30px;">
+                    <a href="{{ url_for('login', user_type='client') }}" class="btn">クライアントとして始める</a>
+                    <a href="{{ url_for('login', user_type='engineer') }}" class="btn" style="background-color: #38a169;">開発者として始める</a>
+                </div>
             </section>
 
             <section id="features" class="features">
                 <div class="feature-card">
                     <div class="feature-icon">⚡</div>
-                    <h3>AIを活用した要件定義</h3>
+                    <h3>AIを活用した要件定義（実装予定）</h3>
                     <p>生成AIを使って、簡単かつ効率的に要件定義や仕様策定を行えます。</p>
                 </div>
                 <div class="feature-card">
@@ -169,7 +171,7 @@
                 <div class="steps">
                     <div class="step">
                         <div class="step-number">1</div>
-                        <div>クライアントがAIを使って要件を定義</div>
+                        <div>クライアントがAIを使って要件を定義（実装予定）</div>
                     </div>
                     <div class="step">
                         <div class="step-number">2</div>
@@ -185,20 +187,12 @@
                     </div>
                 </div>
             </section>
-
-            <section id="get-started" class="cta">
-                <h2>あなたの理想のシステム開発を、ここから始めましょう</h2>
-                <div class="cta-buttons">
-                    <a href="{{ url_for('login', user_type='client') }}" class="btn">クライアントとして登録</a>
-                    <a href="{{ url_for('login', user_type='engineer') }}" class="btn" style="background-color: #38a169;">開発者として登録</a>
-                </div>
-            </section>
         </main>
     </div>
 
     <footer>
         <div class="container">
-            <p>&copy; 2023 AI Synergy. All rights reserved.</p>
+            <p>&copy; 2025 AI Synergy. All rights reserved.</p>
         </div>
     </footer>
 </body>

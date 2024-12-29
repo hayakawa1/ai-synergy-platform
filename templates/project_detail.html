@@ -45,11 +45,10 @@
                 </div>
                 
                 <!-- クライアント情報 -->
-                <div class="flex items-center">
-                    <img class="h-10 w-10 rounded-full" src="https://www.gravatar.com/avatar/{{ project.client.email|lower|trim|hash }}?s=200&d=mp" alt="">
+                <div class="mt-4 flex items-center">
+                    <img class="h-8 w-8 rounded-full" src="{{ project.client.picture or 'https://www.gravatar.com/avatar/' ~ project.client.email|hash ~ '?s=200&d=mp' }}" alt="">
                     <div class="ml-3">
                         <p class="text-sm font-medium text-gray-900">{{ project.client.name }}</p>
-                        <p class="text-xs text-gray-500">クライアント</p>
                     </div>
                 </div>
             </div>
@@ -64,7 +63,7 @@
         <!-- アクションボタン -->
         {% if current_user.user_type == 'engineer' and current_user.id != project.client_id %}
         <div class="mt-6 flex justify-end">
-            <a href="{{ url_for('apply_project', project_id=project.id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+            <a href="{{ url_for('apply_project', project_id=project.id) }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                 この案件に応募する
             </a>
         </div>
@@ -76,27 +75,27 @@
             <div class="mt-4 space-y-4">
                 {% if project.proposals %}
                     {% for proposal in project.proposals %}
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <div class="flex items-center">
-                            <img class="h-8 w-8 rounded-full" src="https://www.gravatar.com/avatar/{{ proposal.engineer.email|lower|trim|hash }}?s=200&d=mp" alt="">
-                            <div class="ml-3">
-                                <p class="text-sm font-medium text-gray-900">{{ proposal.engineer.name }}</p>
-                                <p class="text-xs text-gray-500">{{ proposal.created_at.strftime('%Y年%m月%d日') }}に提案</p>
+                    <div class="border rounded-lg p-6 mb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <img class="h-8 w-8 rounded-full" src="{{ proposal.engineer.picture or 'https://www.gravatar.com/avatar/' ~ proposal.engineer.email|hash ~ '?s=200&d=mp' }}" alt="">
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">{{ proposal.engineer.name }}</p>
+                                    {% if proposal.engineer.hourly_rate %}
+                                    <p class="text-sm text-gray-500">希望単価: ¥{{ "{:,}".format(proposal.engineer.hourly_rate) }}/時</p>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
-                        <div class="mt-4 prose prose-sm max-w-none">
-                            {{ proposal.content|nl2br|safe }}
-                        </div>
-                        {% if proposal.url %}
-                        <div class="mt-4">
-                            <a href="{{ proposal.url }}" target="_blank" rel="noopener noreferrer" class="text-sm text-primary-600 hover:text-primary-500">
-                                ポートフォリオを見る
-                                <svg class="inline-block ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
+                            <a href="{{ proposal.url }}" target="_blank" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">
+                                提案URLを見る
                             </a>
                         </div>
-                        {% endif %}
+                        <div class="mt-4">
+                            <p class="text-gray-600 whitespace-pre-wrap">{{ proposal.content }}</p>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-500">
+                            <p>提案の有効期限: {% if proposal.expires_at %}{{ proposal.expires_at.strftime('%Y年%m月%d日') }}{% else %}未設定{% endif %}</p>
+                        </div>
                     </div>
                     {% endfor %}
                 {% else %}
