@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block authenticated_content %}
+<div class="space-y-6">
+    <!-- アクションボタン -->
+    <div class="flex justify-end">
+        <a href="{{ url_for('create_project') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700">
+            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            新規案件を登録
+        </a>
+    </div>
+
+    <!-- 案件一覧 -->
+    <div class="bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h2 class="text-lg font-medium text-gray-900">登録済みの案件</h2>
+            <div class="mt-6 space-y-4">
+                {% for project in current_user.projects %}
+                <div class="border rounded-lg p-6 hover:border-primary-500 transition-colors duration-150">
+                    <div class="sm:flex sm:items-center sm:justify-between">
+                        <h3 class="text-lg font-medium text-gray-900">
+                            <a href="{{ url_for('project_detail', project_id=project.id) }}" class="hover:text-primary-600">
+                                {{ project.title }}
+                            </a>
+                        </h3>
+                        <div class="mt-2 sm:mt-0 flex gap-2">
+                            <a href="{{ url_for('edit_project', project_id=project.id) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                編集
+                            </a>
+                            <form method="POST" action="{{ url_for('delete_project', project_id=project.id) }}" class="inline-block" onsubmit="return confirm('本当にこの案件を削除しますか？');">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50">
+                                    削除
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-gray-600">{{ project.description[:200] }}{% if project.description|length > 200 %}...{% endif %}</p>
+                    
+                    <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+                        {% if project.budget_min or project.budget_max %}
+                        <span class="inline-flex items-center">
+                            <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {% if project.budget_min %}¥{{ "{:,}".format(project.budget_min) }}{% endif %}
+                            {% if project.budget_min and project.budget_max %} 〜 {% endif %}
+                            {% if project.budget_max %}¥{{ "{:,}".format(project.budget_max) }}{% endif %}
+                        </span>
+                        {% endif %}
+                        
+                        <span class="inline-flex items-center">
+                            <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                            </svg>
+                            納期: {% if project.deadline %}{{ project.deadline.strftime('%Y年%m月%d日') }}{% else %}未設定{% endif %}
+                        </span>
+
+                        <span class="inline-flex items-center">
+                            <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                            </svg>
+                            提案: {{ project.proposals|length }}件
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">案件がありません</h3>
+                    <p class="mt-1 text-sm text-gray-500">新しい案件を登録してエンジニアを募集しましょう。</p>
+                    <div class="mt-6">
+                        <a href="{{ url_for('create_project') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            新規案件を登録
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

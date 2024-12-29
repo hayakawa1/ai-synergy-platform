@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Synergy - 未来のシステム開発を共創するプラットフォーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #1a202c, #2d3748);
+            color: white;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+        }
+        nav ul li {
+            margin-left: 24px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        nav ul li a:hover {
+            color: #63b3ed;
+        }
+        .hero {
+            text-align: center;
+            padding: 60px 0;
+        }
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3182ce;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2c5282;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        .feature-card {
+            background-color: #2d3748;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+        .how-it-works {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .steps {
+            display: inline-block;
+            text-align: left;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .step-number {
+            background-color: #3182ce;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+        }
+        .cta {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        footer {
+            background-color: #2d3748;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">AI Synergy</div>
+            <nav>
+                <ul>
+                    <li><a href="#features">特徴</a></li>
+                    <li><a href="#how-it-works">仕組み</a></li>
+                    <li><a href="#get-started">始める</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h1>未来のシステム開発を共創するプラットフォーム</h1>
+                <p>AIを活用して、システム開発の依頼者と開発者を結ぶ新しい形のマッチングサイト</p>
+                <a href="#get-started" class="btn">今すぐ始める &#8594;</a>
+            </section>
+
+            <section id="features" class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>AIを活用した要件定義</h3>
+                    <p>生成AIを使って、簡単かつ効率的に要件定義や仕様策定を行えます。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">&#60;/&#62;</div>
+                    <h3>エンジニアからの実動提案</h3>
+                    <p>開発者は要件に基づいた試作システムを提案として投稿できます。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>リスク軽減</h3>
+                    <p>クライアントは事前に試作システムを確認し、期待値やリスクを正確に把握できます。</p>
+                </div>
+            </section>
+
+            <section id="how-it-works" class="how-it-works">
+                <h2>AI Synergyの仕組み</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div>クライアントがAIを使って要件を定義</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div>エンジニアが試作システムを提案</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div>クライアントが提案を確認し、最適な開発者を選択</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div>効率的な開発プロセスの開始</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="get-started" class="cta">
+                <h2>あなたの理想のシステム開発を、ここから始めましょう</h2>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('login', user_type='client') }}" class="btn">クライアントとして登録</a>
+                    <a href="{{ url_for('login', user_type='engineer') }}" class="btn" style="background-color: #38a169;">開発者として登録</a>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 AI Synergy. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="md:grid md:grid-cols-3 md:gap-6">
+        <div class="md:col-span-1">
+            <div class="px-4 sm:px-0">
+                <h3 class="text-lg font-medium leading-6 text-gray-900">プロフィール編集</h3>
+                <p class="mt-1 text-sm text-gray-600">
+                    {% if current_user.user_type == 'engineer' %}
+                    あなたのスキルや経験を共有しましょう
+                    {% else %}
+                    企業情報や求めている人材像を共有しましょう
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-5 md:mt-0 md:col-span-2">
+            <form action="{{ url_for('edit_profile') }}" method="POST">
+                {{ form.csrf_token }}
+                <div class="shadow sm:rounded-md sm:overflow-hidden">
+                    <div class="px-4 py-5 bg-white space-y-6 sm:p-6">
+                        <!-- 名前 -->
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">名前</label>
+                            <div class="mt-1">
+                                {{ form.name(class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md", placeholder="名前") }}
+                            </div>
+                            {% if form.name.errors %}
+                            <p class="mt-2 text-sm text-red-600">
+                                {% for error in form.name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- プロフィール -->
+                        <div>
+                            <label for="profile" class="block text-sm font-medium text-gray-700">
+                                {% if current_user.user_type == 'engineer' %}
+                                自己紹介
+                                {% else %}
+                                企業紹介
+                                {% endif %}
+                            </label>
+                            <div class="mt-1">
+                                {{ form.profile(rows="5", class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md", placeholder="プロフィール") }}
+                            </div>
+                            {% if form.profile.errors %}
+                            <p class="mt-2 text-sm text-red-600">
+                                {% for error in form.profile.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        {% if current_user.user_type == 'engineer' %}
+                        <!-- 希望単価（エンジニアのみ） -->
+                        <div>
+                            <label for="hourly_rate" class="block text-sm font-medium text-gray-700">希望単価（時給）</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">¥</span>
+                                </div>
+                                {{ form.hourly_rate(class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-7 pr-12 sm:text-sm border-gray-300 rounded-md", placeholder="3000") }}
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">/時</span>
+                                </div>
+                            </div>
+                            {% if form.hourly_rate.errors %}
+                            <p class="mt-2 text-sm text-red-600">
+                                {% for error in form.hourly_rate.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white {% if current_user.user_type == 'engineer' %}bg-indigo-600 hover:bg-indigo-700{% else %}bg-green-600 hover:bg-green-700{% endif %} focus:outline-none focus:ring-2 focus:ring-offset-2 {% if current_user.user_type == 'engineer' %}focus:ring-indigo-500{% else %}focus:ring-green-500{% endif %}">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

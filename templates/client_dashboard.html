@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3>プロフィール</h3>
+                <p><strong>名前:</strong> {{ current_user.name }}</p>
+                <p><strong>メール:</strong> {{ current_user.email }}</p>
+                <a href="{{ url_for('profile') }}" class="btn btn-primary">プロフィール編集</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <h2>エンジニア一覧</h2>
+        <div class="list-group">
+            <!-- ここにエンジニア一覧を表示 -->
+            <div class="list-group-item">
+                <h5 class="mb-1">現在開発中です</h5>
+                <p class="mb-1">近日中にエンジニア一覧が表示されます。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
