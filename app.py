@@ -593,7 +593,7 @@ def api_projects():
     
     projects = []
     for project in pagination.items:
-        projects.append({
+        project_data = {
             'id': project.id,
             'title': project.title,
             'description': project.description,
@@ -606,12 +606,16 @@ def api_projects():
                 'email_hash': hashlib.md5(project.client.email.lower().encode('utf-8')).hexdigest(),
                 'picture': project.client.picture
             }
-        })
+        }
+        projects.append(project_data)
+        app.logger.debug(f'Project data: {project_data}')  # デバッグログ
     
-    return jsonify({
+    response_data = {
         'projects': projects,
         'has_more': page < pagination.pages if pagination.pages else False
-    })
+    }
+    app.logger.debug(f'API Response: {response_data}')  # デバッグログ
+    return jsonify(response_data)
 
 # Initialize database
 with app.app_context():

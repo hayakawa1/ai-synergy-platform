@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block authenticated_content %}
+<div class="bg-white shadow sm:rounded-lg">
+    <div class="px-4 py-5 sm:p-6">
+        <h2 class="text-lg font-medium text-gray-900">提案一覧</h2>
+        <div class="mt-4 space-y-4">
+            {% if current_user.proposals %}
+                {% for proposal in current_user.proposals %}
+                <div class="border rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-base font-medium text-gray-900">{{ proposal.project.title }}</h3>
+                                <a href="{{ proposal.url }}" target="_blank" class="ml-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                                    提案URLを見る
+                                </a>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-600">{{ proposal.content[:200] }}{% if proposal.content|length > 200 %}...{% endif %}</p>
+                            <div class="mt-2 text-sm text-gray-500">
+                                <p>提案日: {{ proposal.created_at.strftime('%Y年%m月%d日') }}</p>
+                                <p>有効期限: {% if proposal.expires_at %}{{ proposal.expires_at.strftime('%Y年%m月%d日') }}{% else %}未設定{% endif %}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-sm text-gray-500">まだ提案はありません。</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

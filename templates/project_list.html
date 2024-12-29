@@ -33,47 +33,50 @@
     </div>
 </div>
 
+<!-- プロジェクトテンプレート -->
 <template id="project-template">
-    <div class="border rounded-lg p-6 hover:border-primary-500 transition-colors duration-150">
-        <div class="sm:flex sm:items-center sm:justify-between">
-            <h3 class="text-lg font-medium text-gray-900">
-                <a href="#" class="project-link hover:text-primary-600">
-                    <span class="project-title"></span>
-                </a>
-            </h3>
-            <div class="mt-2 sm:mt-0">
+    <div class="border rounded-lg p-6 hover:border-emerald-500 transition-colors duration-150">
+        <div class="sm:flex sm:items-start sm:justify-between">
+            <div class="flex-grow">
+                <h3 class="text-lg font-medium text-gray-900">
+                    <a href="#" class="project-link hover:text-emerald-600">
+                        <span class="project-title"></span>
+                    </a>
+                </h3>
+                <p class="mt-2 text-gray-600 project-description"></p>
+                
+                <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+                    <span class="project-budget inline-flex items-center">
+                        <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="budget-text"></span>
+                    </span>
+                    
+                    <span class="inline-flex items-center">
+                        <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                        納期: <span class="project-deadline"></span>
+                    </span>
+
+                    <span class="inline-flex items-center">
+                        <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        募集期限: <span class="project-expires"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="mt-4 sm:mt-0 sm:ml-4">
                 <a href="#" class="project-link inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700">
                     詳細を見る
                 </a>
             </div>
         </div>
-        <p class="mt-2 text-gray-600 project-description"></p>
         
-        <div class="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-            <span class="project-budget inline-flex items-center">
-                <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="budget-text"></span>
-            </span>
-            
-            <span class="inline-flex items-center">
-                <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                </svg>
-                納期: <span class="project-deadline"></span>
-            </span>
-
-            <span class="inline-flex items-center">
-                <svg class="mr-1.5 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                募集期限: <span class="project-expires"></span>
-            </span>
-        </div>
-
         <div class="mt-4 flex items-center">
-            <img class="client-avatar h-8 w-8 rounded-full" src="" alt="">
+            <img class="h-8 w-8 rounded-full client-avatar" src="" alt="">
             <div class="ml-3">
                 <p class="text-sm font-medium text-gray-900 client-name"></p>
             </div>
@@ -96,6 +99,7 @@ async function loadProjects(page = 1, showExpired = false) {
     try {
         const response = await fetch(`/api/projects?page=${page}&show_expired=${showExpired}`);
         const data = await response.json();
+        console.log('API Response:', data); // デバッグ用
         
         if (page === 1) {
             document.getElementById('projects-container').innerHTML = '';
@@ -120,6 +124,7 @@ async function loadProjects(page = 1, showExpired = false) {
 
 // プロジェクトをDOMに追加する関数
 function addProjectToDOM(project) {
+    console.log('Adding project to DOM:', project); // デバッグ用
     const template = document.getElementById('project-template');
     const clone = document.importNode(template.content, true);
     
