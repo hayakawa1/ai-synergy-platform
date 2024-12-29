@@ -19,6 +19,7 @@ from functools import wraps
 from sqlalchemy import or_
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import generate_csrf
 
 # ログ設定
 def setup_logger():
@@ -117,6 +118,14 @@ class User(UserMixin, db.Model):
     def username(self):
         return self.name
 
+    @property
+    def is_client(self):
+        return self.user_type == 'client'
+
+    @property
+    def is_engineer(self):
+        return self.user_type == 'engineer'
+
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -144,6 +153,19 @@ class Proposal(db.Model):
     project = db.relationship('Project', backref=db.backref('proposals', lazy=True))
     engineer = db.relationship('User', backref=db.backref('proposals', lazy=True))
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=True)
+    proposal_id = db.Column(db.Integer, db.ForeignKey('proposal.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment_text = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
+
+    project = db.relationship('Project', backref=db.backref('comments', lazy=True))
+    proposal = db.relationship('Proposal', backref=db.backref('comments', lazy=True))
+    user = db.relationship('User', backref=db.backref('comments', lazy=True))
+
 # Forms
 class ProjectForm(FlaskForm):
     title = StringField('案件タイトル', validators=[DataRequired(), Length(max=100)])
@@ -170,6 +192,9 @@ class ProfileForm(FlaskForm):
     name = StringField('名前', validators=[DataRequired(), Length(max=100)])
     profile = TextAreaField('プロフィール', validators=[Optional(), Length(max=1000)])
     hourly_rate = IntegerField('希望単価', validators=[Optional(), NumberRange(min=0, max=100000)])
+
+class CommentForm(FlaskForm):
+    comment_text = TextAreaField('コメント', validators=[DataRequired(), Length(max=2000)])
 
 # Login manager
 @login_manager.user_loader
@@ -320,8 +345,11 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    template = 'dashboard_engineer.html' if current_user.user_type == 'engineer' else 'dashboard_client.html'
-    return render_template(template)
+    if current_user.is_client:
+        csrf_token = generate_csrf()
+        return render_template('dashboard_client.html', csrf_token=csrf_token)
+    else:
+        return render_template('dashboard_engineer.html')
 
 @app.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
@@ -349,20 +377,21 @@ def edit_profile():
 def create_project():
     if current_user.user_type != 'client':
         logger.warning(f'Non-client user attempted to create project: {current_user.id}')
+        flash('クライアントアカウントでログインしてください。', 'error')
         return redirect(url_for('dashboard'))
 
     form = ProjectForm()
     if form.validate_on_submit():
-        project = Project(
-            client_id=current_user.id,
-            title=form.title.data,
-            description=form.description.data,
-            budget_min=form.budget_min.data,
-            budget_max=form.budget_max.data,
-            deadline=form.deadline.data,
-            expires_at=form.expires_at.data
-        )
         try:
+            project = Project(
+                client_id=current_user.id,
+                title=form.title.data,
+                description=form.description.data,
+                budget_min=form.budget_min.data,
+                budget_max=form.budget_max.data,
+                deadline=form.deadline.data,
+                expires_at=form.expires_at.data
+            )
             db.session.add(project)
             db.session.commit()
             logger.info(f'Project created successfully: {project.id} by user {current_user.id}')
@@ -370,6 +399,12 @@ def create_project():
         except Exception as e:
             db.session.rollback()
             logger.error(f'Project creation failed: {str(e)}\nTraceback: {traceback.format_exc()}')
+            flash('案件の登録に失敗しました。もう一度お試しください。', 'error')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'error')
+        logger.warning(f'Project form validation failed: {form.errors}')
 
     return render_template('project_form.html', form=form)
 
@@ -398,17 +433,24 @@ def edit_project(project_id):
 @login_required
 def delete_project(project_id):
     if current_user.user_type != 'client':
+        flash('権限がありません。', 'error')
         return redirect(url_for('dashboard'))
 
     project = Project.query.get_or_404(project_id)
     if project.client_id != current_user.id:
+        flash('権限がありません。', 'error')
         return redirect(url_for('dashboard'))
 
     try:
+        # 関連する提案を先に削除
+        Proposal.query.filter_by(project_id=project_id).delete()
+        # プロジェクトを削除
         db.session.delete(project)
         db.session.commit()
-    except:
+    except Exception as e:
+        logger.error(f'Project deletion failed: {str(e)}')
         db.session.rollback()
+        flash('削除に失敗しました。', 'error')
 
     return redirect(url_for('dashboard'))
 
@@ -467,6 +509,67 @@ def apply_project(project_id):
     return render_template('proposal_form.html', form=form, project=project)
 
 # APIエンドポイント
+@app.route('/api/comments', methods=['POST'])
+@login_required
+@limiter.limit("10 per minute")
+def post_comment():
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+
+    project_id = data.get('project_id')
+    proposal_id = data.get('proposal_id')
+    comment_text = data.get('comment_text')
+
+    if not comment_text:
+        return jsonify({'error': 'Comment text is required'}), 400
+
+    try:
+        comment = Comment(
+            project_id=project_id,
+            proposal_id=proposal_id,
+            user_id=current_user.id,
+            comment_text=comment_text
+        )
+        db.session.add(comment)
+        db.session.commit()
+        return jsonify({
+            'id': comment.id,
+            'user': {
+                'name': current_user.name,
+                'picture': current_user.picture
+            },
+            'comment_text': comment.comment_text,
+            'created_at': comment.created_at.isoformat()
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f'Failed to post comment: {str(e)}')
+        return jsonify({'error': 'Failed to post comment'}), 500
+
+@app.route('/api/comments', methods=['GET'])
+@login_required
+def get_comments():
+    project_id = request.args.get('project_id')
+    proposal_id = request.args.get('proposal_id')
+
+    query = Comment.query
+    if project_id:
+        query = query.filter_by(project_id=project_id)
+    if proposal_id:
+        query = query.filter_by(proposal_id=proposal_id)
+
+    comments = query.order_by(Comment.created_at.asc()).all()
+    return jsonify([{
+        'id': comment.id,
+        'user': {
+            'name': comment.user.name,
+            'picture': comment.user.picture
+        },
+        'comment_text': comment.comment_text,
+        'created_at': comment.created_at.isoformat()
+    } for comment in comments])
+
 @app.route('/api/projects')
 @login_required
 @limiter.limit("60 per minute")
@@ -525,4 +628,5 @@ if __name__ == '__main__':
         app.run(host='0.0.0.0', port=port)
     else:
         # Local development environment
-        app.run(host='localhost', port=3000, ssl_context=('cert.pem', 'key.pem'), debug=True)
+        port = int(os.environ.get('PORT', 3000))  # デフォルトポートを3001に変更
+        app.run(host='localhost', port=port, ssl_context=('cert.pem', 'key.pem'), debug=True)

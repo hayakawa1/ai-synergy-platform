@@ -1,0 +1,15 @@
+[Unit]
+Description=AI Synergy Platform
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/ais.bit-co.jp
+Environment="PATH=/var/www/ais.bit-co.jp/venv/bin"
+Environment="FLASK_APP=app.py"
+Environment="FLASK_ENV=production"
+ExecStart=/var/www/ais.bit-co.jp/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 app:app
+
+[Install]
+WantedBy=multi-user.target 
