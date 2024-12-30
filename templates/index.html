@@ -33,9 +33,13 @@
             list-style-type: none;
             padding: 0;
             display: flex;
+            align-items: center;
+            margin: 0;
         }
         nav ul li {
             margin-left: 24px;
+            display: flex;
+            align-items: center;
         }
         nav ul li a {
             color: white;
@@ -49,21 +53,22 @@
             text-align: center;
             padding: 60px 0;
         }
-        h1 {
-            font-size: 48px;
+        .hero h1 {
+            font-size: 2.5rem;
             margin-bottom: 20px;
         }
         .hero p {
-            font-size: 20px;
-            margin-bottom: 30px;
+            font-size: 1.2rem;
+            color: #e2e8f0;
+            margin-bottom: 40px;
         }
         .btn {
             display: inline-block;
+            padding: 12px 24px;
             background-color: #3182ce;
             color: white;
-            padding: 12px 24px;
-            border-radius: 5px;
             text-decoration: none;
+            border-radius: 6px;
             transition: background-color 0.3s;
         }
         .btn:hover {
@@ -73,17 +78,20 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
-            margin-bottom: 60px;
+            padding: 60px 0;
         }
         .feature-card {
-            background-color: #2d3748;
+            background-color: rgba(255, 255, 255, 0.1);
             padding: 30px;
             border-radius: 10px;
             text-align: center;
         }
         .feature-icon {
-            font-size: 40px;
+            font-size: 2rem;
             margin-bottom: 20px;
+        }
+        .feature-card h3 {
+            margin-bottom: 15px;
         }
         .how-it-works {
             text-align: center;
@@ -124,6 +132,35 @@
             padding: 20px 0;
             margin-top: 60px;
         }
+        .faq-section {
+            padding: 60px 0;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin: 40px 0;
+        }
+        .faq-section h2 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .faq-category {
+            margin-bottom: 40px;
+        }
+        .faq-category h3 {
+            color: #63b3ed;
+            margin-bottom: 20px;
+        }
+        .faq-item {
+            margin-bottom: 30px;
+        }
+        .faq-question {
+            font-weight: bold;
+            color: #90cdf4;
+            margin-bottom: 10px;
+        }
+        .faq-answer {
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -133,14 +170,16 @@
             <nav>
                 <ul>
                     <li><a href="#features">特徴</a></li>
+                    <li><a href="#requirement-definition">要件定義</a></li>
                     <li><a href="#how-it-works">仕組み</a></li>
+                    <li><a href="#faq">FAQ</a></li>
                 </ul>
             </nav>
         </header>
 
         <main>
             <section class="hero">
-                <h1>未来のシステム開発を共創するプラットフォーム</h1>
+                <h1>AIが導く、新しいシステム開発のカタチ</h1>
                 <p>AIを活用して、システム開発の依頼者と開発者を結ぶ新しい形のマッチングサイト</p>
                 <div class="cta-buttons" style="margin-top: 30px;">
                     <a href="{{ url_for('login', user_type='client') }}" class="btn">クライアントとして始める</a>
@@ -166,6 +205,32 @@
                 </div>
             </section>
 
+            <section id="requirement-definition" class="how-it-works" style="margin-bottom: 60px;">
+                <h2>「要件定義」とは？</h2>
+                <div style="text-align: left; max-width: 800px; margin: 0 auto; padding: 20px;">
+                    <p style="margin-bottom: 20px; line-height: 1.6;">
+                        要件定義とは、開発したいシステムの機能や要求を具体的に記述したものです。
+                        例えば、このAI Synergyプラットフォームの要件定義は以下のようなものです（実際には以下の内容よりもかなり詳細な分量が多いものが生成されます）：
+                    </p>
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <p style="margin-bottom: 10px;">「エンジニアとクライアントのマッチングプラットフォームを開発したい。主な機能として：</p>
+                        <ul style="list-style-type: disc; margin-left: 20px; margin-bottom: 10px;">
+                            <li>ユーザー登録（Googleアカウント連携）</li>
+                            <li>プロジェクト投稿・管理機能</li>
+                            <li>エンジニアからの提案投稿機能</li>
+                            <li>コメント機能</li>
+                            <li>プロフィール管理機能</li>
+                        </ul>
+                        <p>ユーザー認証を実装する必要がある。」</p>
+                    </div>
+                    <p style="margin-bottom: 20px; line-height: 1.6;">
+                        このような要件定義は、ChatGPTなどのAIに「〇〇というシステムの要件定義を書いてください」と依頼することで、
+                        簡単に生成することができます。生成された要件定義をこのサイトに投稿することで、
+                        エンジニアは具体的な実装方法を提案することができます。
+                    </p>
+                </div>
+            </section>
+
             <section id="how-it-works" class="how-it-works">
                 <h2>AI Synergyの仕組み</h2>
                 <div class="steps">
@@ -184,6 +249,82 @@
                     <div class="step">
                         <div class="step-number">4</div>
                         <div>効率的な開発プロセスの開始</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="faq" class="faq-section">
+                <h2>よくある質問（FAQ）</h2>
+
+                <div class="faq-category">
+                    <h3>1. はじめに</h3>
+                    <div class="faq-item">
+                        <div class="faq-question">どのようなサイトですか？</div>
+                        <div class="faq-answer">このサイトは、システム開発を依頼したい企業・個人（クライアント）と、実際に開発を行うエンジニア（開発者）をマッチングするプラットフォームです。生成AI（LLM）を活用して、依頼段階でクライアントが要件定義をし、発注前にエンジニアが実際にうごくサンプルを提案するのが特徴です
+
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">サイトの利用に料金はかかりますか？</div>
+                        <div class="faq-answer">現在は無料で基本機能をお使いいただけます。ただし、将来的に機能拡張や有料プランを導入する場合があります。</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">登録しないとサイトを利用できませんか？</div>
+                        <div class="faq-answer">会員登録（Googleアカウント連携）が必要です。</div>
+                    </div>
+                </div>
+
+                <div class="faq-category">
+                    <h3>2. アカウント・認証関連</h3>
+                    <div class="faq-item">
+                        <div class="faq-question">Googleアカウントでログインするメリットは何ですか？</div>
+                        <div class="faq-answer">パスワードを新たに作成する必要がなく、セキュリティ面でもGoogle側で2段階認証を設定していれば安全性が高まります。また、メールアドレスや名前が自動的に取得されるため、登録手続きがスムーズです。</div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">ログインがうまくいきません。どうすればいいですか？</div>
+                        <div class="faq-answer">一度ブラウザをリフレッシュし、クッキーやキャッシュを削除した上で再度ログインをお試しください。</div>
+                    </div>
+                </div>
+
+                <div class="faq-category">
+                    <h3>3. クライアント向け</h3>
+                    <div class="faq-item">
+                        <div class="faq-question">どのようにしてプロジェクトを投稿するのですか？</div>
+                        <div class="faq-answer">ログイン後、メインメニューから「プロジェクトを新規作成」を選び、必要事項（タイトル・要件定義など）を入力するだけです。要件定義は必要に応じて、AI（ChatGPT等）で生成したものをコピーアンドペーストしてください。</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">予算や納期をどのように設定すればいいですか？</div>
+                        <div class="faq-answer">あくまで概算でも構いません。細かい見積もりは提案を受けた後に、エンジニアと相談の上確定することが多いです。相場感がわからない場合は、AIに質問してください。</div>
+                    </div>
+                </div>
+
+                <div class="faq-category">
+                    <h3>4. エンジニア向け</h3>
+                    <div class="faq-item">
+                        <div class="faq-question">プロジェクトに提案を投稿するにはどうすればいいですか？</div>
+                        <div class="faq-answer">ログイン後、興味のあるプロジェクトの詳細ページから「提案を投稿」ボタンをクリックします。プロトタイプのURLやコメントを入力してください。</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">提案にソースコードやデモURLを載せても問題ありませんか？</div>
+                        <div class="faq-answer">問題ありませんが、実際の納品まではソースコードの開示はおすすめいたしません。機密事項やライセンス管理などはご自身でご注意ください。</div>
+                    </div>
+                </div>
+
+                <div class="faq-category">
+                    <h3>5. AI機能関連</h3>
+
+                    <div class="faq-item">
+                        <div class="faq-question">AIが生成したアイデアやソースコードの著作権はどうなりますか？</div>
+                        <div class="faq-answer">AIによる生成物の著作権については利用者各自でご判断・調整をお願いいたします。大規模なプロジェクトの場合は、専門家や法務部門にご相談いただくことを推奨します。</div>
+                    </div>
+                </div>
+
+                <div class="faq-category">
+                    <h3>6. 利用環境・動作</h3>
+                    <div class="faq-item">
+                        <div class="faq-question">推奨ブラウザは何ですか？</div>
+                        <div class="faq-answer">最新バージョンの Chrome、Firefox、Safari、Edgeなどを推奨しています。モバイル端末でも利用可能ですが、PC画面の方が操作しやすい場合があります。</div>
                     </div>
                 </div>
             </section>

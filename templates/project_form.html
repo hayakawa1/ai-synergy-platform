@@ -32,7 +32,22 @@
 
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700">要件定義</label>
-                {{ form.description(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm", rows="10") }}
+                {{ form.description(class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm", rows="10", placeholder="以下のような要件定義を記載してください。ChatGPTなどのAIに「〇〇というシステムの要件定義を書いてください」と依頼することもできます：
+
+【システム概要】
+・どのようなシステムを開発したいか
+・想定されるユーザー
+・主な機能
+
+【技術要件】
+・使用したい技術やフレームワーク（もしあれば）
+・セキュリティ要件
+・パフォーマンス要件
+
+【その他】
+・参考にしたいサイトやアプリ
+・特に重視する点
+・避けたい点") }}
                 {% if form.description.errors %}
                 <div class="mt-1 text-sm text-red-600">
                     {% for error in form.description.errors %}
